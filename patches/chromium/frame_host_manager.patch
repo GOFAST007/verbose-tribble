@@ -1,0 +1,37 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: deepak1556 <hop2deep@gmail.com>
+Date: Mon, 3 Jun 2019 14:20:05 -0700
+Subject: frame_host_manager.patch
+
+Allows embedder to intercept site instances created by chromium.
+
+diff --git a/content/browser/renderer_host/render_frame_host_manager.cc b/content/browser/renderer_host/render_frame_host_manager.cc
+index ee5750669e83a5b089a322733d8e9ee600a81f3f..d5f2d5bb7593cade974d9f38e9950a428be9fb3a 100644
+--- a/content/browser/renderer_host/render_frame_host_manager.cc
++++ b/content/browser/renderer_host/render_frame_host_manager.cc
+@@ -4223,6 +4223,9 @@ RenderFrameHostManager::GetSiteInstanceForNavigationRequest(
+     request->ResetStateForSiteInstanceChange();
+   }
+ 
++  GetContentClient()->browser()->RegisterPendingSiteInstance(
++      render_frame_host_.get(), dest_site_instance.get());
++
+   return dest_site_instance;
+ }
+ 
+diff --git a/content/public/browser/content_browser_client.h b/content/public/browser/content_browser_client.h
+index 22c14f8cca02c92a740753cabdb67490ddca0a80..8bfd07ba4ec3cd75fcf0237cf4a6ed58c2c743f3 100644
+--- a/content/public/browser/content_browser_client.h
++++ b/content/public/browser/content_browser_client.h
+@@ -318,6 +318,11 @@ class CONTENT_EXPORT ContentBrowserClient {
+ 
+   virtual ~ContentBrowserClient() = default;
+ 
++  // Electron: Registers a pending site instance during a navigation.
++  virtual void RegisterPendingSiteInstance(
++      content::RenderFrameHost* rfh,
++      content::SiteInstance* pending_site_instance) {}
++
+   // Allows the embedder to set any number of custom BrowserMainParts
+   // implementations for the browser startup code. See comments in
+   // browser_main_parts.h.
